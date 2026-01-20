@@ -31,8 +31,8 @@
         {
           "image": "./src/assets/images/icons/icon.png",
           "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "resizeMode": "cover",
+          "backgroundColor": "#000000",
           "dark": {
             "backgroundColor": "#000000"
           }

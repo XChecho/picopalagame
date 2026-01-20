@@ -13,6 +13,7 @@ module.exports = {
         background: "#1A1C22",
         surface: "#2D303E",
         surfaceLight: "#3E4251",
+        modalSurface: "#2D303E",
         white: "#FFFFFF",
         cream: "#FFF4E0", // Un blanco cálido para que no canse la vista
 
@@ -20,15 +21,16 @@ module.exports = {
         mainRed: "#FF5959",
         darkRed: "#C31432",
         shadowRed: "#7B0000",
+        shadowRose: "#C51B6A",
         mainRose: "#FF2E95",
         darkRose: "#BC005B",
         mainPurple: "#9D4EDD",
         darkPurple: "#5A189A",
-        limeGreen: "#A2D729",
-        shadowGreen: "#1B5E20",
-        neonRose: "#FF2E95",
+        limeGreen: "#84CC16",
+        mainGreen: "#15803D",
+        shadowGreen: "#008CA3",
         gold: "#FFD600",
-        shadowPurple: "#240046",
+        shadowPurple: "#5E35B1",
         cian: "#00D2FF",
         seaBlue: "#00457C",
 

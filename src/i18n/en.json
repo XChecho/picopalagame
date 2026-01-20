@@ -2,7 +2,17 @@
   "home": {
     "title": "Home",
     "buttonNewGame": "New Game",
-    "buttonRecord": "Record",
-    "buttonConfig": "Config"
+    "buttonRecord": "Records",
+    "buttonConfig": "Settings",
+    "subtitleHome": "Crack the code",
+    "titleModalNewGame": "Select Game Mode",
+    "subtitleModalNewGame": "Pick your challenge and start guessing",
+    "versusAI": "Versus AI",
+    "descriptionVersusAI": "Challenge our smart bot.",
+    "versusFriendOnline": "Private Room Online",
+    "descriptionFriendOnline": "Challenge a friend in a private room.",
+    "globalPublic": "Public Global Room",
+    "descriptionVersusFriend": "Match with players worldwide.",
+    "buttonMaybeLater": "Maybe Later"
   }
 }
