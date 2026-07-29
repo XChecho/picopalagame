@@ -4,7 +4,7 @@
     "slug": "picopalaapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/images/icons/icon.png",
+    "icon": "./presentation/assets/images/icons/icon.png",
     "scheme": "picopalaapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,6 +14,7 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./presentation/assets/images/icons/icon.png",
         "backgroundColor": "#E6F4FE"
       },
       "edgeToEdgeEnabled": true,
@@ -22,14 +23,14 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./src/assets/images/icons/icon.png"
+      "favicon": "./presentation/assets/images/icons/icon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./src/assets/images/icons/icon.png",
+          "image": "./presentation/assets/images/icons/icon.png",
           "imageWidth": 200,
           "resizeMode": "cover",
           "backgroundColor": "#000000",
@@ -39,7 +40,11 @@
         }
       ],
       "expo-localization",
-      "expo-font"
+      "expo-font",
+      "expo-image",
+      "expo-secure-store",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

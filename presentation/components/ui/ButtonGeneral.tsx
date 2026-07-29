@@ -3,7 +3,6 @@ import React, { ComponentProps } from "react";
 import {
   ActivityIndicator,
   Pressable,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -11,7 +10,6 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
 
-// Definimos el tipo del icono basado en Ionicons
 type IoniconsName = ComponentProps<typeof Ionicons>["name"];
 
 interface Props {
@@ -26,7 +24,7 @@ const stylesButton = {
   primary: ["#FF5959", "#FF2E95"],
   secondary: ["#9D4EDD", "#00D2FF"],
   tertiary: ["#00D2FF", "#A2D729"],
-  disabled: "bg-mainBlue",
+  disabled: ["#4A4D57", "#4A4D57"],
 };
 
 const stylesViewButton = {
@@ -37,10 +35,10 @@ const stylesViewButton = {
 };
 
 const stylesText = {
-  primary: "text-gold",
-  secondary: "text-shadowPurple",
-  tertiary: "text-cian",
-  disabled: "text-softWhite",
+  primary: "#FFD600",
+  secondary: "#5E35B1",
+  tertiary: "#00D729",
+  disabled: "#94959B",
 };
 
 const ButtonGeneral = ({ label, onPress, loading, type, icon }: Props) => {
@@ -55,7 +53,13 @@ const ButtonGeneral = ({ label, onPress, loading, type, icon }: Props) => {
     >
       <LinearGradient
         colors={[styleButton[0], styleButton[1]]}
-        style={[styles.mainContainer, { height: type === "primary" ? 80 : 70 }]}
+        style={{
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "center",
+          borderRadius: 10,
+          height: type === "primary" ? 80 : 70,
+        }}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
       >
@@ -84,12 +88,3 @@ const ButtonGeneral = ({ label, onPress, loading, type, icon }: Props) => {
 };
 
 export default ButtonGeneral;
-
-const styles = StyleSheet.create({
-  mainContainer: {
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
-  },
-});

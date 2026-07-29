@@ -3,9 +3,10 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "@presentation/*": ["./presentation/*"],
+      "@core/*": ["./core/*"],
+      "@assets/*": ["./presentation/assets/*"]
     }
   },
   "include": [

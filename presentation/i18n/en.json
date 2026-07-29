@@ -1,0 +1,37 @@
+{
+  "home": {
+    "title": "Home",
+    "buttonNewGame": "New Game",
+    "buttonRecord": "Records",
+    "buttonConfig": "Settings",
+    "subtitleHome": "Crack the code",
+    "titleModalNewGame": "Select Game Mode",
+    "subtitleModalNewGame": "Pick your challenge and start guessing",
+    "versusAI": "Versus AI",
+    "descriptionVersusAI": "Challenge our smart bot.",
+    "versusFriendOnline": "Private Room Online",
+    "descriptionFriendOnline": "Challenge a friend in a private room.",
+    "globalPublic": "Public Global Room",
+    "descriptionVersusFriend": "Match with players worldwide.",
+    "buttonMaybeLater": "Maybe Later",
+    "game": {
+      "title": "New Game",
+      "subtitle": "Pick your challenge",
+      "versusAI": "Versus AI",
+      "descriptionVersusAI": "Challenge our smart bot",
+      "difficulty": "Difficulty",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "privateRoom": "Private Room",
+      "descriptionPrivate": "Challenge a friend online",
+      "globalRoom": "Global Room",
+      "descriptionGlobal": "Play with players worldwide",
+      "stats": "Your Stats",
+      "bestScore": "Best Score",
+      "streak": "Streak",
+      "avgTime": "Avg Time",
+      "gamesPlayed": "Games Played"
+    }
+  }
+}

@@ -5,7 +5,7 @@ import { Modal, Platform, Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 //Store
-import { useModalStore } from "@/src/store/useModalStore";
+import { useModalStore } from "@/presentation/store/useModalStore";
 import CardGameModal from "./CardGameModal";
 
 const ModalNewGame = () => {

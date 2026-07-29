@@ -1,17 +1,18 @@
 import React from "react";
 
-import { Image, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { Image } from "expo-image";
 
 import { useTranslation } from "react-i18next";
 
 //Store
-import { useModalStore } from "@/src/store/useModalStore";
+import { useModalStore } from "@/presentation/store/useModalStore";
 
 //UI Components
-import ButtonGeneral from "@/src/components/ui/ButtonGeneral";
+import ButtonGeneral from "@/presentation/components/ui/ButtonGeneral";
 
 //Assets
-import logoImage from "@/src/assets/images/icons/icon.png";
+import logoImage from "@/presentation/assets/images/icons/icon.png";
 
 const HomeScreen = () => {
   const { t } = useTranslation();
@@ -27,7 +28,8 @@ const HomeScreen = () => {
       <Image
         source={logoImage}
         className="w-64 h-64 mb-6 rounded-lg"
-        resizeMode="contain"
+        contentFit="contain"
+        transition={200}
       />
       <Text className="text-textMuted text-3xl font-CairoBold">
         {t("home.subtitleHome")}

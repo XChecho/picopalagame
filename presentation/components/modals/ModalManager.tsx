@@ -1,10 +1,10 @@
 import React from "react";
 
 //Store
-import { useModalStore } from "@/src/store/useModalStore";
+import { useModalStore } from "@/presentation/store/useModalStore";
 
 //Components
-import ModalNewGame from "@/src/components/modals/ModalNewGame";
+import ModalNewGame from "@/presentation/components/modals/ModalNewGame";
 
 const ModalManager = () => {
   const { viewModalNewGame } = useModalStore();

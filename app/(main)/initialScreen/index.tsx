@@ -4,7 +4,7 @@ import { Text, View } from "react-native";
 import { router } from "expo-router";
 
 //Components
-import ButtonGeneral from "@/src/components/ui/ButtonGeneral";
+import ButtonGeneral from "@/presentation/components/ui/ButtonGeneral";
 
 const InitialScreen = () => {
   const handleRedirect = () => {
