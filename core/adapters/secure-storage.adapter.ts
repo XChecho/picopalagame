@@ -5,8 +5,6 @@ export class SecureStorageAdapter {
     try {
       await SecureStore.setItemAsync(key, value);
     } catch (error) {
-      console.error("SecureStore Set Error:", error);
-      // No uses Alert aquí, el componente que lo llama decidirá si mostrar un error
     }
   }
 
@@ -14,7 +12,6 @@ export class SecureStorageAdapter {
     try {
       return await SecureStore.getItemAsync(key);
     } catch (error) {
-      console.error("SecureStore Get Error:", error);
       return null;
     }
   }
@@ -23,7 +20,6 @@ export class SecureStorageAdapter {
     try {
       await SecureStore.deleteItemAsync(key);
     } catch (error) {
-      console.error("SecureStore Remove Error:", error);
     }
   }
 }

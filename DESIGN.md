@@ -33,18 +33,34 @@
 ### Pistas (Feedback)
 | Pista | Significado |
 |-------|-------------|
-| **Pala** (o **Fija**) | Dígito correcto en posición correcta. |
-| **Pico** | Dígito correcto pero en posición incorrecta. |
+| **Pico** | Dígito correcto en posición correcta. |
+| **Pala** | Dígito correcto pero en posición incorrecta. |
 | *(nada)* | Dígito no está en el número del oponente. |
 
 **Ejemplo:**
 - Número secreto: `3-7-1-9`
 - Intento: `3-1-5-9`
-- Resultado: **2 Palas** (3 y 9 en posición correcta), **1 Pico** (1 está pero en posición incorrecta)
+- Resultado: **2 Picos** (3 y 9 en posición correcta), **1 Pala** (1 está pero en posición incorrecta)
 
 ### Victoria
-- Gana el primer jugador que obtenga **4 Palas** (todos los dígitos en posición correcta).
-- Si ambos jugadores agotan sus turnos sin adivinar, es **empate** (configurable: máximo de turnos por partida).
+- Gana el primer jugador que obtenga **4 Picos** (todos los dígitos en posición correcta).
+- Si ambos jugadores agotan sus intentos sin adivinar, es **empate**.
+
+### Límite de Intentos
+- Cada jugador tiene un máximo de **12 intentos**.
+- Un "turno" completo se compone de: intento del jugador + intento de la IA.
+- El contador en pantalla muestra "Turno X/12".
+- Si después de 12 intentos cada uno nadie adivina, es empate.
+- Al empatar, se muestran ambos números secretos.
+
+### Inicio del Juego
+- Al iniciar una partida vs IA, se decide aleatoriamente quién empieza (50% jugador, 50% IA).
+- Se muestra una animación de "decidiendo quién empieza" antes del primer movimiento.
+- La IA siempre espera al menos 2 segundos antes de mostrar su intento, para una UX más natural.
+
+### Intentos Repetidos
+- No se permite enviar el mismo número de 4 dígitos en las mismas posiciones más de una vez.
+- Si el usuario intenta repetir un número, se muestra un toast con el mensaje "Este número ya fue usado" y el resultado anterior (Picos/Palas) de ese intento.
 
 ---
 
@@ -58,6 +74,8 @@
   - **Easy:** Bot hace intentos aleatorios (sin estrategia).
   - **Medium:** Bot usa eliminación básica de posibilidades.
   - **Hard:** Bot usa algoritmo de deducción optimizado (similar a Mastermind solver).
+- **Inicio aleatorio:** Se decide aleatoriamente quién empieza (jugador o IA).
+- **Delay de IA:** La IA espera al menos 2 segundos antes de mostrar su intento para una UX más natural.
 - **Persistencia:** Partida en curso se guarda en SecureStore para reconexión.
 
 ### 3.2 Private Room (Online)

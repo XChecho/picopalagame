@@ -1,19 +1,37 @@
 import React from "react";
 
 import { Modal, Platform, Pressable, Text, View } from "react-native";
-
+import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-//Store
 import { useModalStore } from "@/presentation/store/useModalStore";
 import CardGameModal from "./CardGameModal";
 
 const ModalNewGame = () => {
   const { t } = useTranslation();
-  const { viewModalNewGame, closeModalNewGame } = useModalStore();
+  const {
+    viewModalNewGame,
+    closeModalNewGame,
+    openModalDifficulty,
+  } = useModalStore();
 
   const handleCloseModal = () => {
     closeModalNewGame();
+  };
+
+  const handleVersusAI = () => {
+    closeModalNewGame();
+    openModalDifficulty();
+  };
+
+  const handlePrivateRoom = () => {
+    closeModalNewGame();
+    router.push("/private/game/private-room");
+  };
+
+  const handleGlobalRoom = () => {
+    closeModalNewGame();
+    router.push("/private/game/global-room");
   };
 
   return (
@@ -38,16 +56,19 @@ const ModalNewGame = () => {
             title={t("home.versusAI")}
             description={t("home.descriptionVersusAI")}
             type="versus"
+            onPress={handleVersusAI}
           />
           <CardGameModal
             title={t("home.versusFriendOnline")}
             description={t("home.descriptionFriendOnline")}
             type="private"
+            onPress={handlePrivateRoom}
           />
           <CardGameModal
             title={t("home.globalPublic")}
             description={t("home.descriptionVersusFriend")}
             type="public"
+            onPress={handleGlobalRoom}
           />
           <Pressable
             onPress={handleCloseModal}

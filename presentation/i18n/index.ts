@@ -1,8 +1,9 @@
 // src/i18n/index.ts
 import { getLocales } from "expo-localization";
-import * as SecureStore from "expo-secure-store";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+
+import { SecureStorageAdapter } from "@/core/adapters/secure-storage.adapter";
 
 import en from "./en.json";
 import es from "./es.json";
@@ -18,38 +19,30 @@ export const resources = {
   fr: { translation: fr },
 } as const;
 
-// Función para cargar el idioma almacenado
 async function getSavedLanguage(): Promise<string> {
-  try {
-    const storedLang = await SecureStore.getItemAsync(LANGUAGE_KEY);
+  const storedLang = await SecureStorageAdapter.getItem(LANGUAGE_KEY);
 
-    if (storedLang) {
-      return storedLang;
-    }
-
-    // Usa encadenamiento opcional para evitar el crash
-    const locales = getLocales();
-    const deviceLang =
-      locales && locales.length > 0 ? locales[0].languageCode : "en";
-
-    if (
-      deviceLang === "en" ||
-      deviceLang === "es" ||
-      deviceLang === "pt" ||
-      deviceLang === "fr"
-    ) {
-      await SecureStore.setItemAsync(LANGUAGE_KEY, deviceLang);
-      return deviceLang;
-    }
-
-    return "en";
-  } catch (error) {
-    console.error("Error al obtener idioma:", error);
-    return "en";
+  if (storedLang) {
+    return storedLang;
   }
+
+  const locales = getLocales();
+  const deviceLang =
+    locales && locales.length > 0 ? locales[0].languageCode : "en";
+
+  if (
+    deviceLang === "en" ||
+    deviceLang === "es" ||
+    deviceLang === "pt" ||
+    deviceLang === "fr"
+  ) {
+    await SecureStorageAdapter.setItem(LANGUAGE_KEY, deviceLang);
+    return deviceLang;
+  }
+
+  return "en";
 }
 
-// Inicializa i18n
 export async function initI18n() {
   const language = await getSavedLanguage();
   await i18n.use(initReactI18next).init({
@@ -63,10 +56,9 @@ export async function initI18n() {
   });
 }
 
-// Función para cambiar el idioma y guardarlo
 export async function changeAppLanguage(lang: string) {
   await i18n.changeLanguage(lang);
-  await SecureStore.setItemAsync(LANGUAGE_KEY, lang);
+  await SecureStorageAdapter.setItem(LANGUAGE_KEY, lang);
 }
 
 export default i18n;

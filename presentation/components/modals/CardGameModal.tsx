@@ -9,6 +9,7 @@ interface Props {
   title: string;
   description: string;
   type: "versus" | "private" | "public";
+  onPress: () => void;
 }
 
 const stylesColor = {
@@ -29,13 +30,11 @@ const stylesColor = {
   },
 };
 
-const CardGameModal = ({ title, description, type }: Props) => {
-  const handleRedirect = () => { };
-
+const CardGameModal = ({ title, description, type, onPress }: Props) => {
   const styleMainContainer = stylesColor[type].primary;
   return (
     <Pressable
-      onPress={handleRedirect}
+      onPress={onPress}
       className={`w-full h-[96px] flex flex-row justify-start items-center rounded-3xl active:opacity-85 mb-4 ${styleMainContainer}`}
     >
       <View className="w-[72px] h-full flex justify-center items-center">
@@ -67,9 +66,6 @@ const CardGameModal = ({ title, description, type }: Props) => {
           color="#FFF"
           className="absolute right-2"
         />
-        {/* <View
-          className={`relative flex-1 h-full flex flex-row justify-between items-center px-4 rounded-r-3xl ${styleSecondaryContainer}`}
-        ></View> */}
       </LinearGradient>
     </Pressable>
   );

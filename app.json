@@ -17,7 +17,6 @@
         "foregroundImage": "./presentation/assets/images/icons/icon.png",
         "backgroundColor": "#E6F4FE"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.auronTaleGames.picopalaapp"
     },

@@ -1,16 +1,5 @@
-import React from 'react';
+import { Redirect } from "expo-router";
 
-import { View } from 'react-native';
-
-import { Redirect } from 'expo-router';
-
-const MainIndex = () => {
-  
-  return (
-    <View className='flex-1'>
-      <Redirect href="/(main)/initialScreen" />
-    </View>
-  );
-};
-
-export default MainIndex
+export default function MainIndex() {
+  return <Redirect href="/private/home" />;
+}

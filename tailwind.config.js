@@ -33,6 +33,16 @@ module.exports = {
         cian: "#00D2FF",
         seaBlue: "#00457C",
 
+        // Stats (para componentes de estadísticas)
+        statBlue: "#1a2a3a",
+        statGreen: "#1a3a2a",
+        statBrown: "#3a2a1a",
+        statRed: "#3a1a2a",
+        statBlueBorder: "#2a4a6a",
+        statGreenBorder: "#2a6a4a",
+        statBrownBorder: "#6a4a2a",
+        statRedBorder: "#6a2a4a",
+
         // Estados (Versión Gamer)
         success: "#A2D729", // Verde brillante
         error: "#FF4D4D", // Rojo vibrante
@@ -57,6 +67,8 @@ module.exports = {
       boxShadow: {
         card: "0px 1px 3px 1px rgba(0, 0, 0, 1), 0px 1px 2px 0px rgba(0, 0, 0, 0.8)",
         filterCard: "0px 1px 4px 0px rgba(0, 102, 255, 0.5)",
+        cardGlow: "0px 0px 20px rgba(255, 46, 149, 0.3)",
+        cardShadow: "0px 4px 12px rgba(0, 0, 0, 0.3)",
       },
     },
   },
