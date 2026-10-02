@@ -270,8 +270,7 @@ export default function VersusAIScreen() {
 
         if (hasValidInMemoryState) {
           repairMissingFields();
-          const stateAfterRepair = useGameStore.getState();
-          showDecidingAnimationFlow(stateAfterRepair.currentPlayerTurn ?? "PLAYER");
+          setIsInitialized(true);
           return;
         }
 
