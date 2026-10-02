@@ -172,10 +172,20 @@
     "decidingWhoStarts": "Decidiendo quién empieza...",
     "youStart": "¡Tú empiezas!",
     "aiStarts": "¡El bot empieza!",
+    "opponentStarts": "¡Tu oponente empieza!",
     "gameError": "Ocurrió un error. Inténtalo de nuevo.",
     "timeUpAutoGuess": "¡Se acabó el tiempo! Intento automático enviado.",
     "aiHistory": "Historial IA",
-    "yourHistory": "Tu Historial"
+    "yourHistory": "Tu Historial",
+    "viewGame": "Ver Partida",
+    "opponentNumberWas": "El número del oponente era",
+    "yourNumberWas": "Tu número era",
+    "turnsUsed": "{{turns}} turnos usados",
+    "reviewTitle": "Resumen de la Partida",
+    "reviewHistory": "Historial de la Partida",
+    "opponentSecretNumber": "Número secreto del oponente",
+    "opponentSecretRevealed": "Revelado al final de la partida",
+    "tryAgain": "Intentar de Nuevo"
   },
   "privateRoom": {
     "subtitle": "Juega con un amigo",

@@ -119,6 +119,7 @@ export default function SelectSecretScreen() {
             onSubmit={handleSubmit}
             disabled={!canSubmit}
             mode="secret"
+            hideDisplay
           />
         </View>
       )}

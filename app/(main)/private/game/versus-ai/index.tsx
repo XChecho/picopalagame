@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Alert, Animated, Easing, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Pressable, Alert, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useTranslation } from "react-i18next";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,6 +24,9 @@ import NumberPad from "@presentation/components/ui/NumberPad";
 import GameHeader from "@presentation/components/ui/GameHeader";
 import GameStatusBar from "@presentation/components/ui/GameStatusBar";
 import SecretNumberCard from "@presentation/components/ui/SecretNumberCard";
+import GameResultView from "@presentation/components/ui/GameResultView";
+import CoinFlip from "@presentation/components/ui/CoinFlip";
+import { useBlockHardwareBack } from "@presentation/hooks/useBlockHardwareBack";
 import type { TDifficulty } from "@core/interfaces/IMatch/IMatch";
 import type { ILocalMove, TActor } from "@core/interfaces/IGame/IGame";
 
@@ -37,12 +40,6 @@ const VALID_DIFFICULTIES: TDifficulty[] = ["EASY", "MEDIUM", "HARD"];
 
 const AI_MIN_DELAY_MS = 2000;
 const TIMER_SECONDS = 60;
-
-const getTimerColor = (seconds: number): string => {
-  if (seconds >= 51) return "#FF4D4D";
-  if (seconds >= 40) return "#FFC800";
-  return "#FFFFFF";
-};
 
 type Params = {
   difficulty?: string;
@@ -69,7 +66,6 @@ export default function VersusAIScreen() {
     moves,
     currentTurn,
     status,
-    maxAttempts,
     roundNumber,
     starter,
     currentPlayerTurn,
@@ -92,24 +88,17 @@ export default function VersusAIScreen() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [gameResult, setGameResult] = useState<"win" | "lose" | "draw" | null>(null);
   const [showDecidingAnimation, setShowDecidingAnimation] = useState(false);
-  const [decidingMessage, setDecidingMessage] = useState<string>("");
+  const [showStarterModal, setShowStarterModal] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [previousFeedback, setPreviousFeedback] = useState<{ picos: number; palas: number } | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(TIMER_SECONDS);
   const [isGuessInputVisible, setIsGuessInputVisible] = useState(false);
 
   const isInitializedRef = useRef(false);
-  const spinAnimValue = useRef(new Animated.Value(0)).current;
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const aiStarterTriggeredRef = useRef(false);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const handleAutoSubmitRef = useRef<() => void>();
-
-  // eslint-disable-next-line react-hooks/refs
-  const spin = spinAnimValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
-  });
+  const handleAutoSubmitRef = useRef<(() => void) | undefined>(undefined);
 
   const showToast = useCallback((text: string, type: "info" | "error" | "success" = "info") => {
     if (toastTimeoutRef.current) {
@@ -267,23 +256,8 @@ export default function VersusAIScreen() {
       }
     };
 
-    const showDecidingAnimationFlow = (starterValue: TActor) => {
+    const showDecidingAnimationFlow = (_starterValue: TActor) => {
       setShowDecidingAnimation(true);
-      Animated.loop(
-        Animated.timing(spinAnimValue, {
-          toValue: 1,
-          duration: 1000,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        })
-      ).start();
-
-      setTimeout(() => {
-        setShowDecidingAnimation(false);
-        setIsInitialized(true);
-        setDecidingMessage(starterValue === "PLAYER" ? t("game.youStart") : t("game.aiStarts"));
-        setTimeout(() => setDecidingMessage(""), 1500);
-      }, 2000);
     };
 
     const init = async () => {
@@ -330,6 +304,15 @@ export default function VersusAIScreen() {
 
     init();
   }, []);
+
+  useEffect(() => {
+    if (!showStarterModal) return;
+    const timer = setTimeout(() => {
+      setShowStarterModal(false);
+      setIsInitialized(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [showStarterModal]);
 
   useEffect(() => {
     if (!isInitialized || status !== "PLAYING") return;
@@ -527,6 +510,14 @@ export default function VersusAIScreen() {
     });
   }, [difficulty]);
 
+  const handleViewGame = useCallback(() => {
+    router.push("/private/game/review");
+  }, []);
+
+  const handleBackToMenu = useCallback(() => {
+    router.replace("/private/home");
+  }, []);
+
   const handleLeaveGame = useCallback(() => {
     if (status === "PLAYING") {
       Alert.alert(
@@ -549,6 +540,8 @@ export default function VersusAIScreen() {
     }
   }, [status, t, saveGameState]);
 
+  useBlockHardwareBack(status === "PLAYING", handleLeaveGame);
+
   const handleCloseGuessInput = useCallback(() => {
     setIsGuessInputVisible(false);
     setSelectedDigits([]);
@@ -564,12 +557,70 @@ export default function VersusAIScreen() {
     setError(null);
   }, [handleSubmit]);
 
-  if (!isInitialized) {
+  if (!isInitialized && !showDecidingAnimation) {
     return (
       <View className="flex-1 bg-background justify-center items-center">
         <Text className="text-textMuted font-CairoRegular text-base">
           {t("common.loading")}
         </Text>
+      </View>
+    );
+  }
+
+  if (showDecidingAnimation) {
+    return (
+      <View className="flex-1 bg-background justify-center items-center">
+        <CoinFlip
+          visible={showDecidingAnimation}
+          resultSide={currentPlayerTurn === "PLAYER" ? "PLAYER" : "OPPONENT"}
+          decidingLabel={t("game.decidingWhoStarts")}
+          duration={2500}
+          onAnimationEnd={() => {
+            setShowDecidingAnimation(false);
+            setShowStarterModal(true);
+          }}
+        />
+      </View>
+    );
+  }
+
+  if (showStarterModal) {
+    const isPlayerStarter = currentPlayerTurn === "PLAYER";
+    return (
+      <View className="flex-1 bg-background justify-center items-center">
+        <View className="items-center">
+          <View className="w-20 h-20 rounded-full bg-mainPurple/20 justify-center items-center mb-6">
+            <Ionicons
+              name={isPlayerStarter ? "play-circle" : "hourglass-outline"}
+              size={48}
+              color="#9D4EDD"
+            />
+          </View>
+          <Text className="text-white font-CairoBlack text-2xl uppercase tracking-tight">
+            {isPlayerStarter ? t("game.youStart") : t("game.aiStarts")}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (gameResult) {
+    return (
+      <View
+        className="flex-1 bg-background justify-center"
+        style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+      >
+        <GameResultView
+          result={gameResult}
+          opponentNumber={opponentNumber ?? "----"}
+          playerNumber={playerNumber ?? "----"}
+          turns={roundNumber - 1}
+          difficulty={t(DIFFICULTY_LABELS[difficulty])}
+          onPlayAgain={handleNewGame}
+          onBackToMenu={handleBackToMenu}
+          onViewGame={handleViewGame}
+          t={t}
+        />
       </View>
     );
   }
@@ -604,112 +655,15 @@ export default function VersusAIScreen() {
         hint={t("game.secretOnlyYou")}
       />
 
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      >
-        {showDecidingAnimation ? (
-          <View className="py-12 justify-center items-center">
-            <Animated.View style={{ transform: [{ rotate: spin }] }}>
-              <View className="w-20 h-20 rounded-full bg-mainPurple/20 justify-center items-center border-2 border-mainPurple">
-                <Ionicons name="help" size={40} color="#9D4EDD" />
-              </View>
-            </Animated.View>
-            <Text className="text-textMuted font-CairoSemiBold text-base mt-4">
-              {t("game.decidingWhoStarts")}
-            </Text>
-          </View>
-        ) : decidingMessage ? (
-          <View className="py-12 justify-center items-center">
-            <View className="w-20 h-20 rounded-full bg-success/20 justify-center items-center border-2 border-success">
-              <Ionicons name="checkmark" size={40} color="#A2D729" />
-            </View>
-            <Text className="text-success font-CairoBold text-xl mt-4">
-              {decidingMessage}
-            </Text>
-          </View>
-        ) : gameResult ? (
-          <View className="py-12 justify-center items-center px-6">
-            <View className="bg-surface rounded-3xl p-8 w-full max-w-sm items-center">
-              <Text
-                className={`text-3xl font-CairoBlack mb-4 ${
-                  gameResult === "win"
-                    ? "text-success"
-                    : gameResult === "lose"
-                      ? "text-error"
-                      : "text-gold"
-                }`}
-              >
-                {gameResult === "win"
-                  ? t("game.win")
-                  : gameResult === "lose"
-                    ? t("game.lose")
-                    : t("game.draw")}
-              </Text>
-
-              <View className="bg-background rounded-xl px-6 py-3 mb-4 w-full items-center">
-                <Text className="text-textMuted font-CairoRegular text-sm">
-                  {gameResult === "win" ? t("game.correctNumber") : "Bot's number"}
-                </Text>
-                <Text className="text-2xl font-CairoBold text-white mt-1 tracking-widest">
-                  {opponentNumber}
-                </Text>
-              </View>
-
-              {gameResult === "draw" && (
-                <View className="bg-background rounded-xl px-6 py-3 mb-4 w-full items-center">
-                  <Text className="text-textMuted font-CairoRegular text-sm">
-                    {t("game.yourSecretNumber")}
-                  </Text>
-                  <Text className="text-2xl font-CairoBold text-mainPurple mt-1 tracking-widest">
-                    {playerNumber}
-                  </Text>
-                </View>
-              )}
-
-              <View className="flex-row gap-2 mb-2 w-full justify-center">
-                <View className="bg-background rounded-xl px-4 py-2 items-center">
-                  <Text className="text-textMuted font-CairoRegular text-xs">
-                    {t("game.attempts")}
-                  </Text>
-                  <Text className="text-white font-CairoBold text-lg">
-                    {roundNumber - 1}
-                  </Text>
-                </View>
-                <View className="bg-background rounded-xl px-4 py-2 items-center">
-                  <Text className="text-textMuted font-CairoRegular text-xs">
-                    {t("game.difficulty")}
-                  </Text>
-                  <Text className="text-white font-CairoBold text-sm mt-0.5">
-                    {t(DIFFICULTY_LABELS[difficulty])}
-                  </Text>
-                </View>
-              </View>
-
-              <Pressable
-                onPress={handleNewGame}
-                className="w-full bg-mainRed rounded-xl py-3 mb-3 active:opacity-80"
-              >
-                <Text className="text-white font-CairoBold text-center text-lg">
-                  {t("game.playAgain")}
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => router.back()}
-                className="w-full bg-surfaceLight rounded-xl py-3 active:opacity-80"
-              >
-                <Text className="text-textMuted font-CairoSemiBold text-center text-base">
-                  {t("game.backToMenu")}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        ) : (
+      <View className="flex-1">
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
           <GameBoard moves={moves} />
-        )}
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       {toast && (
         <View className="absolute top-24 left-4 right-4 z-20">
@@ -745,7 +699,7 @@ export default function VersusAIScreen() {
             {t("game.thinking")}
           </Text>
         </View>
-      ) : status === "PLAYING" && currentPlayerTurn === "PLAYER" && !gameResult ? (
+      ) : status === "PLAYING" && currentPlayerTurn === "PLAYER" ? (
         isGuessInputVisible ? (
           <NumberPad
             selectedDigits={selectedDigits}

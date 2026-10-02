@@ -149,8 +149,21 @@
     "connecting": "Connexion...",
     "disconnected": "Déconnecté",
     "reconnecting": "Reconnexion...",
+    "aiStarts": "Le bot commence !",
+    "opponentStarts": "Votre adversaire commence !",
     "aiHistory": "Historique IA",
-    "yourHistory": "Votre Historique"
+    "yourHistory": "Votre Historique",
+    "decidingWhoStarts": "Tirage au sort...",
+    "youStart": "Vous commencez !",
+    "viewGame": "Voir la partie",
+    "opponentNumberWas": "Le nombre de l'adversaire était",
+    "yourNumberWas": "Votre nombre était",
+    "turnsUsed": "{{turns}} tours utilisés",
+    "reviewTitle": "Résumé de la partie",
+    "reviewHistory": "Historique de la partie",
+    "opponentSecretNumber": "Nombre secret de l'adversaire",
+    "opponentSecretRevealed": "Révélé à la fin de la partie",
+    "tryAgain": "Réessayer"
   },
   "record": {
     "title": "Historique",

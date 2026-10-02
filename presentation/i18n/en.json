@@ -172,10 +172,20 @@
     "decidingWhoStarts": "Deciding who starts...",
     "youStart": "You start!",
     "aiStarts": "The bot starts!",
+    "opponentStarts": "Your opponent starts!",
     "gameError": "An error occurred. Please try again.",
     "timeUpAutoGuess": "Time's up! Auto-guess sent.",
     "aiHistory": "AI History",
-    "yourHistory": "Your History"
+    "yourHistory": "Your History",
+    "viewGame": "View Game",
+    "opponentNumberWas": "Opponent's number was",
+    "yourNumberWas": "Your number was",
+    "turnsUsed": "{{turns}} turns used",
+    "reviewTitle": "Game Review",
+    "reviewHistory": "Match History",
+    "opponentSecretNumber": "Opponent's secret number",
+    "opponentSecretRevealed": "Revealed at the end of the game",
+    "tryAgain": "Try Again"
   },
   "privateRoom": {
     "subtitle": "Play with a friend",

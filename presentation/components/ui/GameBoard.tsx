@@ -11,8 +11,7 @@ interface GameBoardProps {
 
 const GameBoard = ({ moves }: GameBoardProps) => {
   const { t } = useTranslation();
-  const botScrollRef = useRef<ScrollView>(null);
-  const playerScrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollView>(null);
 
   const movesWithIndex = moves.map((move, index) => ({
     move,
@@ -23,73 +22,80 @@ const GameBoard = ({ moves }: GameBoardProps) => {
   const botMoves = movesWithIndex.filter((m) => !m.move.isPlayerMove);
   const playerMoves = movesWithIndex.filter((m) => m.move.isPlayerMove);
 
+  const maxMoves = Math.max(botMoves.length, playerMoves.length);
+
   return (
-    <View className="h-72 flex-row px-6 gap-3">
-      {/* AI Column */}
-      <View className="flex-1">
-        <Text className="text-[10px] font-CairoBold uppercase tracking-widest text-mainPurple opacity-70 text-center mb-2">
-          {t("game.aiHistory")}
-        </Text>
-        {botMoves.length === 0 ? (
-          <View className="flex-1 justify-center items-center px-3">
-            <Text className="text-textMuted font-CairoRegular text-xs text-center">
-              {t("game.waitingBotMoves")}
-            </Text>
-          </View>
-        ) : (
-          <ScrollView
-            ref={botScrollRef}
-            className="flex-1"
-            onContentSizeChange={() =>
-              botScrollRef.current?.scrollToEnd({ animated: true })
-            }
-            showsVerticalScrollIndicator={false}
-          >
-            {botMoves.map(({ move, gameTurn }, index) => (
-              <GuessRow
-                key={`bot-move-${move.turnNumber}-${index}`}
-                move={move}
-                isPlayer={false}
-                gameTurn={gameTurn}
-              />
-            ))}
-            <View className="h-2" />
-          </ScrollView>
-        )}
+    <View className="flex-1 px-6 gap-3">
+      {/* Headers */}
+      <View className="flex-row">
+        <View className="flex-1">
+          <Text className="text-[10px] font-CairoBold uppercase tracking-widest text-mainPurple opacity-70 text-center mb-2">
+            {t("game.aiHistory")}
+          </Text>
+        </View>
+        <View className="flex-1">
+          <Text className="text-[10px] font-CairoBold uppercase tracking-widest text-mainRed opacity-70 text-center mb-2">
+            {t("game.yourHistory")}
+          </Text>
+        </View>
       </View>
 
-      {/* Player Column */}
-      <View className="flex-1">
-        <Text className="text-[10px] font-CairoBold uppercase tracking-widest text-mainRed opacity-70 text-center mb-2">
-          {t("game.yourHistory")}
-        </Text>
-        {playerMoves.length === 0 ? (
-          <View className="flex-1 justify-center items-center px-3">
-            <Text className="text-textMuted font-CairoRegular text-xs text-center">
-              {t("game.waitingPlayerMoves")}
-            </Text>
+      {/* Content */}
+      {moves.length === 0 ? (
+        <View className="flex-1 justify-center items-center px-3">
+          <Text className="text-textMuted font-CairoRegular text-xs text-center">
+            {t("game.waitingPlayerMoves")}
+          </Text>
+        </View>
+      ) : (
+        <ScrollView
+          ref={scrollRef}
+          className="flex-1"
+          onContentSizeChange={() =>
+            scrollRef.current?.scrollToEnd({ animated: true })
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="flex-row">
+            {/* AI Column */}
+            <View className="flex-1">
+              {Array.from({ length: maxMoves }).map((_, index) => {
+                const botMove = botMoves[index];
+                if (!botMove) {
+                  return <View key={`bot-empty-${index}`} className="h-20" />;
+                }
+                return (
+                  <GuessRow
+                    key={`bot-move-${botMove.move.turnNumber}-${index}`}
+                    move={botMove.move}
+                    isPlayer={false}
+                    gameTurn={botMove.gameTurn}
+                  />
+                );
+              })}
+            </View>
+
+            {/* Player Column */}
+            <View className="flex-1 ml-3">
+              {Array.from({ length: maxMoves }).map((_, index) => {
+                const playerMove = playerMoves[index];
+                if (!playerMove) {
+                  return <View key={`player-empty-${index}`} className="h-20" />;
+                }
+                return (
+                  <GuessRow
+                    key={`player-move-${playerMove.move.turnNumber}-${index}`}
+                    move={playerMove.move}
+                    isPlayer={true}
+                    gameTurn={playerMove.gameTurn}
+                  />
+                );
+              })}
+            </View>
           </View>
-        ) : (
-          <ScrollView
-            ref={playerScrollRef}
-            className="flex-1"
-            onContentSizeChange={() =>
-              playerScrollRef.current?.scrollToEnd({ animated: true })
-            }
-            showsVerticalScrollIndicator={false}
-          >
-            {playerMoves.map(({ move, gameTurn }, index) => (
-              <GuessRow
-                key={`player-move-${move.turnNumber}-${index}`}
-                move={move}
-                isPlayer={true}
-                gameTurn={gameTurn}
-              />
-            ))}
-            <View className="h-2" />
-          </ScrollView>
-        )}
-      </View>
+          <View className="h-2" />
+        </ScrollView>
+      )}
     </View>
   );
 };

@@ -14,6 +14,7 @@ interface NumberPadProps {
   error?: string | null;
   mode?: "guess" | "secret";
   onClose?: () => void;
+  hideDisplay?: boolean;
 }
 
 const NumberPad = ({
@@ -25,6 +26,7 @@ const NumberPad = ({
   error,
   mode = "guess",
   onClose,
+  hideDisplay = false,
 }: NumberPadProps) => {
   const { t } = useTranslation();
 
@@ -56,51 +58,53 @@ const NumberPad = ({
       )}
 
       {/* Active Guess Display */}
-      <View className="flex-row justify-center gap-3 mb-6">
-        {[0, 1, 2, 3].map((index) => {
-          const digit = selectedDigits[index];
-          const isActive = index === selectedDigits.length;
-          const isFilled = digit !== undefined;
+      {!hideDisplay && (
+        <View className="flex-row justify-center gap-3 mb-6">
+          {[0, 1, 2, 3].map((index) => {
+            const digit = selectedDigits[index];
+            const isActive = index === selectedDigits.length;
+            const isFilled = digit !== undefined;
 
-          return (
-            <View
-              key={`slot-${index}`}
-              className={`w-14 h-16 rounded-lg justify-center items-center ${
-                isFilled
-                  ? "bg-background border-2 border-mainRed"
-                  : isActive
+            return (
+              <View
+                key={`slot-${index}`}
+                className={`w-14 h-16 rounded-lg justify-center items-center ${
+                  isFilled
                     ? "bg-background border-2 border-mainRed"
-                    : "bg-background border border-border"
-              }`}
-              style={
-                isActive
-                  ? {
-                      shadowColor: "#FF5959",
-                      shadowOffset: { width: 0, height: 0 },
-                      shadowOpacity: 0.3,
-                      shadowRadius: 10,
-                      elevation: 5,
-                    }
-                  : undefined
-              }
-            >
-              {isFilled ? (
-                <Text className="text-white font-CairoBlack text-2xl">
-                  {digit}
-                </Text>
-              ) : (
-                <Text
-                  className={`font-CairoBlack text-2xl ${
-                    isActive ? "text-white" : "text-textMuted opacity-30"
-                  }`}
-                >
-                  _
-                </Text>
-              )}
-            </View>
-          );
-        })}
-      </View>
+                    : isActive
+                      ? "bg-background border-2 border-mainRed"
+                      : "bg-background border border-border"
+                }`}
+                style={
+                  isActive
+                    ? {
+                        shadowColor: "#FF5959",
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 10,
+                        elevation: 5,
+                      }
+                    : undefined
+                }
+              >
+                {isFilled ? (
+                  <Text className="text-white font-CairoBlack text-2xl">
+                    {digit}
+                  </Text>
+                ) : (
+                  <Text
+                    className={`font-CairoBlack text-2xl ${
+                      isActive ? "text-white" : "text-textMuted opacity-30"
+                    }`}
+                  >
+                    _
+                  </Text>
+                )}
+              </View>
+            );
+          })}
+        </View>
+      )}
 
       {error && (
         <Text className="text-center text-sm font-CairoSemiBold mb-4 text-error">

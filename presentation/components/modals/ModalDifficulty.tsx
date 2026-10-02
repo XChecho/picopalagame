@@ -1,6 +1,5 @@
 import React from "react";
 
-import { LinearGradient } from "expo-linear-gradient";
 import { Modal, Pressable, Text, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
@@ -9,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { TDifficulty } from "@core/interfaces/IMatch/IMatch";
 import { useModalStore } from "@/presentation/store/useModalStore";
+import DifficultyCard from "@/presentation/components/ui/DifficultyCard";
 
 type DifficultyTitleKey =
   | "home.game.easy"
@@ -25,28 +25,32 @@ const DIFFICULTY_OPTIONS: Array<{
   titleKey: DifficultyTitleKey;
   descriptionKey: DifficultyDescriptionKey;
   icon: React.ComponentProps<typeof Ionicons>["name"];
-  colors: [string, string];
+  leftColor: string;
+  gradientColors: [string, string];
 }> = [
   {
     value: "EASY",
     titleKey: "home.game.easy",
     descriptionKey: "home.descriptionEasy",
     icon: "leaf-outline",
-    colors: ["#00D2FF", "#15803D"],
+    leftColor: "#15803D",
+    gradientColors: ["#15803D", "#00D2FF"],
   },
   {
     value: "MEDIUM",
     titleKey: "home.game.medium",
     descriptionKey: "home.descriptionMedium",
     icon: "flash-outline",
-    colors: ["#9D4EDD", "#00D2FF"],
+    leftColor: "#5A189A",
+    gradientColors: ["#5A189A", "#00D2FF"],
   },
   {
     value: "HARD",
     titleKey: "home.game.hard",
     descriptionKey: "home.descriptionHard",
     icon: "flame-outline",
-    colors: ["#FF5959", "#FF2E95"],
+    leftColor: "#BC005B",
+    gradientColors: ["#BC005B", "#FF5959"],
   },
 ];
 
@@ -91,40 +95,17 @@ export default function ModalDifficulty() {
             </Text>
           </View>
 
-          <View className="gap-3">
+          <View className="gap-0">
             {DIFFICULTY_OPTIONS.map((option) => (
-              <Pressable
+              <DifficultyCard
                 key={option.value}
+                title={t(option.titleKey)}
+                description={t(option.descriptionKey)}
+                icon={option.icon}
+                leftColor={option.leftColor}
+                gradientColors={option.gradientColors}
                 onPress={() => handleSelectDifficulty(option.value)}
-                accessibilityRole="button"
-                accessibilityLabel={t(option.titleKey)}
-                className="h-[88px] rounded-2xl overflow-hidden active:opacity-85"
-              >
-                <LinearGradient
-                  colors={option.colors}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{
-                    flex: 1,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 16,
-                  }}
-                >
-                  <View className="w-12 h-12 rounded-2xl bg-white/20 justify-center items-center mr-4">
-                    <Ionicons name={option.icon} size={26} color="#FFFFFF" />
-                  </View>
-                  <View className="flex-1 pr-2">
-                    <Text className="text-white font-CairoBold text-xl">
-                      {t(option.titleKey)}
-                    </Text>
-                    <Text className="text-white/85 font-CairoRegular text-sm">
-                      {t(option.descriptionKey)}
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={24} color="#FFFFFF" />
-                </LinearGradient>
-              </Pressable>
+              />
             ))}
           </View>
 
