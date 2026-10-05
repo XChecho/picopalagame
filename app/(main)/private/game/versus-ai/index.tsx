@@ -678,13 +678,13 @@ export default function VersusAIScreen() {
                   <View className="w-4 h-4 rounded-full bg-success justify-center items-center">
                     <Text className="text-[8px] font-CairoBold text-background">{previousFeedback.picos}</Text>
                   </View>
-                  <Text className="text-white/80 text-xs">P</Text>
+                  <Text className="text-white/80 text-xs">F</Text>
                 </View>
                 <View className="flex-row items-center gap-1">
                   <View className="w-4 h-4 rounded-full bg-gold justify-center items-center">
                     <Text className="text-[8px] font-CairoBold text-background">{previousFeedback.palas}</Text>
                   </View>
-                  <Text className="text-white/80 text-xs">p</Text>
+                  <Text className="text-white/80 text-xs">P</Text>
                 </View>
               </View>
             )}
