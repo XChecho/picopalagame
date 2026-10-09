@@ -5,29 +5,32 @@ import type {
   IAuthResponse,
   IRefreshTokenResponse,
 } from "@core/interfaces/IAuth/IAuth";
+import { getMobilePlatform } from "@core/utils/mobilePlatform";
+
+const AUTH_BASE = "/mobile/auth";
 
 export async function loginAction(
   loginRequest: ILoginRequest
 ): Promise<IAuthResponse> {
-  return fetchGeneral<IAuthResponse>("/auth/login", {
+  return fetchGeneral<IAuthResponse>(`${AUTH_BASE}/login`, {
     method: "POST",
-    body: loginRequest,
+    body: { ...loginRequest, platform: getMobilePlatform() },
   });
 }
 
 export async function registerAction(
   registerRequest: IRegisterRequest
 ): Promise<IAuthResponse> {
-  return fetchGeneral<IAuthResponse>("/auth/register", {
+  return fetchGeneral<IAuthResponse>(`${AUTH_BASE}/register`, {
     method: "POST",
-    body: registerRequest,
+    body: { ...registerRequest, platform: getMobilePlatform() },
   });
 }
 
 export async function refreshTokensAction(
   refreshToken: string
 ): Promise<IRefreshTokenResponse> {
-  return fetchGeneral<IRefreshTokenResponse>("/auth/refresh", {
+  return fetchGeneral<IRefreshTokenResponse>(`${AUTH_BASE}/refresh`, {
     method: "POST",
     body: { refreshToken },
   });
@@ -36,7 +39,7 @@ export async function refreshTokensAction(
 export async function logoutAction(
   refreshToken: string
 ): Promise<{ message: string }> {
-  return fetchGeneral<{ message: string }>("/auth/logout", {
+  return fetchGeneral<{ message: string }>(`${AUTH_BASE}/logout`, {
     method: "POST",
     body: { refreshToken },
   });
