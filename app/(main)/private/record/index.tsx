@@ -6,6 +6,16 @@ import { Ionicons } from "@expo/vector-icons";
 
 import ScreenHeader from "@presentation/components/ui/ScreenHeader";
 import SegmentedControl from "@presentation/components/ui/SegmentedControl";
+import { useAuthStore } from "@presentation/store/useAuthStore";
+import {
+  usePlayerMatches,
+  usePlayerStats,
+} from "@presentation/hooks/usePlayer";
+import type {
+  IMatchSummary,
+  TDifficulty,
+  TMatchResult,
+} from "@core/interfaces/IMatch/IMatch";
 
 const FILTER_OPTIONS = [
   { label: "Todos", value: "all" },
@@ -14,50 +24,77 @@ const FILTER_OPTIONS = [
   { label: "Sala Global", value: "GLOBAL" },
 ];
 
+const HISTORY_PAGE_SIZE = 20;
+
+const DIFFICULTY_LABELS = {
+  EASY: "home.game.easy",
+  MEDIUM: "home.game.medium",
+  HARD: "home.game.hard",
+} as const;
+
+type TRecordResult = "win" | "lose" | "draw";
+
+const RESULT_MAP: Record<TMatchResult, TRecordResult> = {
+  WIN: "win",
+  LOSS: "lose",
+  DRAW: "draw",
+};
+
 interface MatchRecord {
   id: string;
   mode: string;
-  result: "win" | "lose" | "draw";
+  result: TRecordResult | null;
   date: string;
   turns: number;
-  difficulty?: string;
+  difficulty?: TDifficulty | null;
 }
 
-const MOCK_RECORDS: MatchRecord[] = [
-  {
-    id: "1",
-    mode: "VERSUS_AI",
-    result: "win",
-    date: "29 jul",
-    turns: 6,
-    difficulty: "Media",
-  },
-  {
-    id: "2",
-    mode: "VERSUS_AI",
-    result: "lose",
-    date: "28 jul",
-    turns: 10,
-    difficulty: "Difícil",
-  },
-  {
-    id: "3",
-    mode: "PRIVATE",
-    result: "win",
-    date: "27 jul",
-    turns: 4,
-  },
-];
+function formatDuration(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+}
+
+function toMatchRecord(
+  match: IMatchSummary,
+  playerId: string | undefined,
+): MatchRecord {
+  const me = match.participants.find((p) => p.playerId === playerId);
+  const playedAt = new Date(match.finishedAt ?? match.createdAt);
+  return {
+    id: match.id,
+    mode: match.mode,
+    result: me?.result ? RESULT_MAP[me.result] : null,
+    date: playedAt.toLocaleDateString(undefined, {
+      day: "numeric",
+      month: "short",
+    }),
+    turns: me?.attemptsUsed ?? 0,
+    difficulty: match.aiDifficulty,
+  };
+}
 
 export default function RecordScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState("all");
+  const playerId = useAuthStore((state) => state.player?.id);
 
-  const filteredRecords =
-    filter === "all"
-      ? MOCK_RECORDS
-      : MOCK_RECORDS.filter((r) => r.mode === filter);
+  const statsQuery = usePlayerStats();
+  const matchesQuery = usePlayerMatches(
+    HISTORY_PAGE_SIZE,
+    0,
+    filter === "all" ? undefined : filter,
+    "FINISHED",
+  );
+  const stats = statsQuery.data;
+  const records = (matchesQuery.data?.matches ?? []).map((m) =>
+    toMatchRecord(m, playerId),
+  );
+  const winRate =
+    stats && stats.totalGames > 0
+      ? Math.round((stats.wins / stats.totalGames) * 100)
+      : 0;
 
   const getResultIcon = (result: string) => {
     switch (result) {
@@ -116,24 +153,25 @@ export default function RecordScreen() {
       className="flex-1 bg-background"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
     >
-      <ScreenHeader
-        title={t("record.title")}
-        subtitle={t("record.subtitle")}
-      />
+      <ScreenHeader title={t("record.title")} subtitle={t("record.subtitle")} />
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         {/* Estadísticas principales */}
         <View className="flex-row gap-3 px-4 mt-3">
           <View className="flex-1 bg-statBlue border border-statBlueBorder rounded-2xl p-4 min-h-[110px]">
             <Ionicons name="bar-chart-outline" size={24} color="#00D2FF" />
-            <Text className="text-white font-CairoBlack text-3xl mt-2">7</Text>
+            <Text className="text-white font-CairoBlack text-3xl mt-2">
+              {stats?.totalGames ?? 0}
+            </Text>
             <Text className="text-textMuted font-CairoRegular text-xs mt-1">
               {t("record.gamesPlayed")}
             </Text>
           </View>
           <View className="flex-1 bg-statGreen border border-statGreenBorder rounded-2xl p-4 min-h-[110px]">
             <Ionicons name="trophy-outline" size={24} color="#A2D729" />
-            <Text className="text-success font-CairoBlack text-3xl mt-2">4</Text>
+            <Text className="text-success font-CairoBlack text-3xl mt-2">
+              {stats?.wins ?? 0}
+            </Text>
             <Text className="text-textMuted font-CairoRegular text-xs mt-1">
               {t("record.wins")}
             </Text>
@@ -143,14 +181,18 @@ export default function RecordScreen() {
         <View className="flex-row gap-3 px-4 mt-3">
           <View className="flex-1 bg-statBrown border border-statBrownBorder rounded-2xl p-4 min-h-[110px]">
             <Ionicons name="analytics-outline" size={24} color="#FFD600" />
-            <Text className="text-gold font-CairoBlack text-3xl mt-2">57%</Text>
+            <Text className="text-gold font-CairoBlack text-3xl mt-2">
+              {winRate}%
+            </Text>
             <Text className="text-textMuted font-CairoRegular text-xs mt-1">
               {t("record.winRate")}
             </Text>
           </View>
           <View className="flex-1 bg-statRed border border-statRedBorder rounded-2xl p-4 min-h-[110px]">
             <Ionicons name="flash-outline" size={24} color="#FF5959" />
-            <Text className="text-mainRed font-CairoBlack text-3xl mt-2">3</Text>
+            <Text className="text-mainRed font-CairoBlack text-3xl mt-2">
+              {stats?.currentStreak ?? 0}
+            </Text>
             <Text className="text-textMuted font-CairoRegular text-xs mt-1">
               {t("record.currentStreak")}
             </Text>
@@ -160,19 +202,25 @@ export default function RecordScreen() {
         {/* Estadísticas secundarias */}
         <View className="flex-row gap-3 px-4 mt-3">
           <View className="bg-surface rounded-xl p-3 flex-1 min-h-[80px]">
-            <Text className="text-error font-CairoBold text-2xl mb-1">2</Text>
+            <Text className="text-error font-CairoBold text-2xl mb-1">
+              {stats?.losses ?? 0}
+            </Text>
             <Text className="text-textMuted font-CairoRegular text-xs">
               {t("record.losses")}
             </Text>
           </View>
           <View className="bg-surface rounded-xl p-3 flex-1 min-h-[80px]">
-            <Text className="text-gold font-CairoBold text-2xl mb-1">1</Text>
+            <Text className="text-gold font-CairoBold text-2xl mb-1">
+              {stats?.draws ?? 0}
+            </Text>
             <Text className="text-textMuted font-CairoRegular text-xs">
               {t("record.draws")}
             </Text>
           </View>
           <View className="bg-surface rounded-xl p-3 flex-1 min-h-[80px]">
-            <Text className="text-cian font-CairoBold text-2xl mb-1">3</Text>
+            <Text className="text-cian font-CairoBold text-2xl mb-1">
+              {stats?.bestAttempts ?? "-"}
+            </Text>
             <Text className="text-textMuted font-CairoRegular text-xs">
               {t("record.bestResult")}
             </Text>
@@ -181,14 +229,16 @@ export default function RecordScreen() {
 
         <View className="flex-row gap-3 px-4 mt-3">
           <View className="bg-surface rounded-xl p-3 flex-1 min-h-[80px]">
-            <Text className="text-mainRed font-CairoBold text-2xl mb-1">8</Text>
+            <Text className="text-mainRed font-CairoBold text-2xl mb-1">
+              {stats?.bestStreak ?? 0}
+            </Text>
             <Text className="text-textMuted font-CairoRegular text-xs">
               {t("record.longestStreak")}
             </Text>
           </View>
           <View className="bg-surface rounded-xl p-3 flex-1 min-h-[80px]">
             <Text className="text-limeGreen font-CairoBold text-2xl mb-1">
-              2m 18s
+              {formatDuration(stats?.avgTimePerGame ?? 0)}
             </Text>
             <Text className="text-textMuted font-CairoRegular text-xs">
               {t("record.averageTime")}
@@ -196,7 +246,7 @@ export default function RecordScreen() {
           </View>
           <View className="bg-surface rounded-xl p-3 flex-1 min-h-[80px]">
             <Text className="text-mainPurple font-CairoBold text-2xl mb-1">
-              276
+              {stats?.totalPalas ?? 0}
             </Text>
             <Text className="text-textMuted font-CairoRegular text-xs">
               {t("record.totalPalas")}
@@ -219,8 +269,27 @@ export default function RecordScreen() {
             {t("record.recentGames")}
           </Text>
 
-          {filteredRecords.map((record) => {
-            const result = record.result;
+          {matchesQuery.isLoading && (
+            <Text className="text-textMuted font-CairoRegular text-sm">
+              {t("common.loading")}
+            </Text>
+          )}
+          {matchesQuery.isError && (
+            <Text
+              className="text-error font-CairoRegular text-sm"
+              onPress={() => matchesQuery.refetch()}
+            >
+              {t("common.retry")}
+            </Text>
+          )}
+          {matchesQuery.isSuccess && records.length === 0 && (
+            <Text className="text-textMuted font-CairoRegular text-sm">
+              {t("record.noGames")}
+            </Text>
+          )}
+
+          {records.map((record) => {
+            const result = record.result ?? "";
             const resultColor = getResultColor(result);
             const resultIcon = getResultIcon(result);
 
@@ -235,15 +304,11 @@ export default function RecordScreen() {
                     result === "win"
                       ? "bg-success/20"
                       : result === "lose"
-                      ? "bg-error/20"
-                      : "bg-gold/20"
+                        ? "bg-error/20"
+                        : "bg-gold/20"
                   }`}
                 >
-                  <Ionicons
-                    name={resultIcon}
-                    size={20}
-                    color={resultColor}
-                  />
+                  <Ionicons name={resultIcon} size={20} color={resultColor} />
                 </View>
 
                 {/* Info */}
@@ -264,7 +329,7 @@ export default function RecordScreen() {
                     {record.difficulty && (
                       <View className="bg-mainPurple/20 px-2 py-0.5 rounded-full">
                         <Text className="text-mainPurple font-CairoRegular text-xs">
-                          {record.difficulty}
+                          {t(DIFFICULTY_LABELS[record.difficulty])}
                         </Text>
                       </View>
                     )}
@@ -285,7 +350,7 @@ export default function RecordScreen() {
                       result === "win" ? "text-success" : "text-error"
                     }`}
                   >
-                    {getResultLabel(result)}
+                    {result ? getResultLabel(result) : "-"}
                   </Text>
                 </View>
               </View>
