@@ -185,7 +185,14 @@
     "reviewHistory": "Match History",
     "opponentSecretNumber": "Opponent's secret number",
     "opponentSecretRevealed": "Revealed at the end of the game",
-    "tryAgain": "Try Again"
+    "tryAgain": "Try Again",
+    "opponentHistory": "Opponent history",
+    "opponentDisconnected": "Your opponent disconnected. They lose if they don't return.",
+    "opponentTurnWait": "Waiting for your opponent's move",
+    "autoGuessPlayed": "Time ran out: a random number was played.",
+    "resumeMatchTitle": "Match in progress",
+    "resumeMatchBody": "You have an unfinished private match.",
+    "resumeMatch": "Resume"
   },
   "privateRoom": {
     "subtitle": "Play with a friend",
@@ -205,7 +212,16 @@
     "invalidCode": "Code must be 6 characters",
     "shareCode": "Share this code with your friend so they can join the room.",
     "shareCodeHint": "Share this code with your friend to join the room.",
-    "waitingForOpponent": "Waiting for your opponent to join..."
+    "waitingForOpponent": "Waiting for your opponent to join...",
+    "cancelRoom": "Cancel room",
+    "roomCancelled": "The room was closed",
+    "opponentJoined": "Your opponent joined",
+    "randomSecret": "Random",
+    "secretLocked": "Secret number sent",
+    "waitingOpponentSecret": "Waiting for your opponent's secret number...",
+    "assigningRandom": "Assigning a random number...",
+    "matchReady": "Match ready!",
+    "matchCancelled": "The match was cancelled"
   },
   "globalRoom": {
     "title": "Global Room",

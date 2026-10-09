@@ -4,17 +4,21 @@ interface UseSecretNumberSelectionOptions {
   onComplete: (secretNumber: string) => void;
   onExpire: () => void;
   timeoutSeconds?: number;
+  /** Server clock (epoch ms). When set it replaces the local countdown. */
+  deadlineAt?: number;
 }
 
 export function useSecretNumberSelection({
   onComplete,
   onExpire,
   timeoutSeconds = 30,
+  deadlineAt,
 }: UseSecretNumberSelectionOptions) {
   const [selectedDigits, setSelectedDigits] = useState<number[]>([]);
   const [timeRemaining, setTimeRemaining] = useState(timeoutSeconds);
   const [isExpired, setIsExpired] = useState(false);
   const deadlineRef = useRef<number>(Date.now() + timeoutSeconds * 1000);
+  const serverDeadlineRef = useRef(deadlineAt);
   const onCompleteRef = useRef(onComplete);
   const onExpireRef = useRef(onExpire);
 
@@ -22,8 +26,13 @@ export function useSecretNumberSelection({
   onExpireRef.current = onExpire;
 
   useEffect(() => {
+    serverDeadlineRef.current = deadlineAt;
+  }, [deadlineAt]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
-      const remaining = Math.max(0, deadlineRef.current - Date.now());
+      const deadline = serverDeadlineRef.current ?? deadlineRef.current;
+      const remaining = Math.max(0, deadline - Date.now());
       const seconds = Math.ceil(remaining / 1000);
       setTimeRemaining(seconds);
 
@@ -36,19 +45,22 @@ export function useSecretNumberSelection({
     return () => clearInterval(interval);
   }, []);
 
-  const handleDigitPress = useCallback((digit: number) => {
-    if (isExpired) return;
+  const handleDigitPress = useCallback(
+    (digit: number) => {
+      if (isExpired) return;
 
-    setSelectedDigits((prev) => {
-      if (prev.includes(digit)) {
-        return prev;
-      }
-      if (prev.length >= 4) {
-        return prev;
-      }
-      return [...prev, digit];
-    });
-  }, [isExpired]);
+      setSelectedDigits((prev) => {
+        if (prev.includes(digit)) {
+          return prev;
+        }
+        if (prev.length >= 4) {
+          return prev;
+        }
+        return [...prev, digit];
+      });
+    },
+    [isExpired],
+  );
 
   const handleBackspace = useCallback(() => {
     if (isExpired) return;

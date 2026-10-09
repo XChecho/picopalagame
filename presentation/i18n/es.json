@@ -185,7 +185,14 @@
     "reviewHistory": "Historial de la Partida",
     "opponentSecretNumber": "Número secreto del oponente",
     "opponentSecretRevealed": "Revelado al final de la partida",
-    "tryAgain": "Intentar de Nuevo"
+    "tryAgain": "Intentar de Nuevo",
+    "opponentHistory": "Historial rival",
+    "opponentDisconnected": "Tu rival se desconectó. Si no vuelve pierde la partida.",
+    "opponentTurnWait": "Esperando la jugada de tu rival",
+    "autoGuessPlayed": "Se agotó el tiempo: se jugó un número al azar.",
+    "resumeMatchTitle": "Partida en curso",
+    "resumeMatchBody": "Tienes una partida privada sin terminar.",
+    "resumeMatch": "Continuar"
   },
   "privateRoom": {
     "subtitle": "Juega con un amigo",
@@ -205,7 +212,16 @@
     "invalidCode": "El código debe tener 6 caracteres",
     "shareCode": "Comparte este código con tu amigo para que se una a la sala.",
     "shareCodeHint": "Comparte este código con tu amigo para que se una a la sala.",
-    "waitingForOpponent": "Esperando a que tu oponente se una..."
+    "waitingForOpponent": "Esperando a que tu oponente se una...",
+    "cancelRoom": "Cancelar sala",
+    "roomCancelled": "La sala fue cerrada",
+    "opponentJoined": "Tu rival se unió",
+    "randomSecret": "Aleatorio",
+    "secretLocked": "Número secreto enviado",
+    "waitingOpponentSecret": "Esperando el número secreto de tu rival...",
+    "assigningRandom": "Asignando un número aleatorio...",
+    "matchReady": "¡Partida lista!",
+    "matchCancelled": "La partida fue cancelada"
   },
   "globalRoom": {
     "title": "Sala Global",

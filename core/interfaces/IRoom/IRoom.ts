@@ -51,3 +51,16 @@ export interface IGlobalQueueResponse {
   queuePosition: number;
   estimatedWait: number;
 }
+
+/** `GET /room/private/:code` (host or guest only). */
+export interface IRoomStatusResponse {
+  id: string;
+  code: string;
+  hostId: string;
+  guestId: string | null;
+  status: "WAITING" | "IN_GAME" | "CLOSED" | "EXPIRED";
+  maxTurns: number;
+  expiresAt: string;
+  matchId: string | null;
+  matchStatus: "WAITING" | "PLAYING" | "FINISHED" | "CANCELLED" | null;
+}

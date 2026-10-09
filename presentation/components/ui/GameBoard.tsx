@@ -7,9 +7,11 @@ import GuessRow from "./GuessRow";
 
 interface GameBoardProps {
   moves: ILocalMove[];
+  /** Header of the left column; defaults to the AI history. */
+  opponentLabel?: string;
 }
 
-const GameBoard = ({ moves }: GameBoardProps) => {
+const GameBoard = ({ moves, opponentLabel }: GameBoardProps) => {
   const { t } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
 
@@ -30,7 +32,7 @@ const GameBoard = ({ moves }: GameBoardProps) => {
       <View className="flex-row">
         <View className="flex-1">
           <Text className="text-[10px] font-CairoBold uppercase tracking-widest text-mainPurple opacity-70 text-center mb-2">
-            {t("game.aiHistory")}
+            {opponentLabel ?? t("game.aiHistory")}
           </Text>
         </View>
         <View className="flex-1">

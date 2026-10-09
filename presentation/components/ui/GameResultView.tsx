@@ -9,13 +9,14 @@ export type TGameResult = "win" | "lose" | "draw";
 
 interface GameResultViewProps {
   result: TGameResult;
-  opponentNumber: string;
+  // Hidden when the opponent's secret is not known (online matches).
+  opponentNumber?: string | null;
   playerNumber: string;
   turns: number;
   difficulty?: string;
   onPlayAgain: () => void;
   onBackToMenu: () => void;
-  onViewGame: () => void;
+  onViewGame?: () => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any;
 }
@@ -114,14 +115,16 @@ const GameResultView = ({
         </Text>
 
         {/* Número del oponente */}
-        <View className="bg-background rounded-xl p-4 w-full mb-4 items-center">
-          <Text className="text-textMuted font-CairoRegular text-sm mb-1">
-            {t("game.opponentNumberWas")}
-          </Text>
-          <Text className="text-2xl font-CairoBold text-white tracking-[0.2em]">
-            {opponentNumber.split("").join(" ")}
-          </Text>
-        </View>
+        {opponentNumber ? (
+          <View className="bg-background rounded-xl p-4 w-full mb-4 items-center">
+            <Text className="text-textMuted font-CairoRegular text-sm mb-1">
+              {t("game.opponentNumberWas")}
+            </Text>
+            <Text className="text-2xl font-CairoBold text-white tracking-[0.2em]">
+              {opponentNumber.split("").join(" ")}
+            </Text>
+          </View>
+        ) : null}
 
         {/* Número del jugador (solo en empate) */}
         {result === "draw" && (
@@ -181,17 +184,19 @@ const GameResultView = ({
           </Pressable>
 
           {/* Botón Ver partida */}
-          <Pressable
-            onPress={onViewGame}
-            className="w-full h-14 rounded-xl bg-surfaceLight border border-border/50 items-center justify-center active:opacity-80"
-          >
-            <View className="flex-row items-center gap-2">
-              <Ionicons name="eye-outline" size={20} color="#FFFFFF" />
-              <Text className="text-white font-CairoBold text-base uppercase">
-                {t("game.viewGame")}
-              </Text>
-            </View>
-          </Pressable>
+          {onViewGame ? (
+            <Pressable
+              onPress={onViewGame}
+              className="w-full h-14 rounded-xl bg-surfaceLight border border-border/50 items-center justify-center active:opacity-80"
+            >
+              <View className="flex-row items-center gap-2">
+                <Ionicons name="eye-outline" size={20} color="#FFFFFF" />
+                <Text className="text-white font-CairoBold text-base uppercase">
+                  {t("game.viewGame")}
+                </Text>
+              </View>
+            </Pressable>
+          ) : null}
 
           {/* Botón Volver al menú */}
           <Pressable

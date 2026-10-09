@@ -10,6 +10,12 @@ export interface IMove {
   createdAt: string;
 }
 
+/** Move as returned inside `GET /match/:id` for online matches. */
+export interface IOnlineMove extends IMove {
+  seat: number | null;
+  isAi: boolean;
+}
+
 export interface IMoveFeedback {
   palas: number;
   picos: number;

@@ -1,14 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Pressable, Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as Clipboard from "expo-clipboard";
+import { router } from "expo-router";
 
 import GameHeader from "@presentation/components/ui/GameHeader";
 import CodeDisplay from "@presentation/components/ui/CodeDisplay";
-import { useCreatePrivateRoom, useJoinPrivateRoom } from "@presentation/hooks/useRoom";
+import {
+  useCancelPrivateRoom,
+  useCreatePrivateRoom,
+  useJoinPrivateRoom,
+  usePrivateRoomStatus,
+} from "@presentation/hooks/useRoom";
+import { useRoomStore } from "@presentation/store/useRoomStore";
 
 export default function PrivateRoomScreen() {
   const { t } = useTranslation();
@@ -19,12 +26,52 @@ export default function PrivateRoomScreen() {
 
   const createRoomMutation = useCreatePrivateRoom();
   const joinRoomMutation = useJoinPrivateRoom();
+  const cancelRoomMutation = useCancelPrivateRoom();
+  const roomStatusQuery = usePrivateRoomStatus(createdRoomCode);
+  const setMatchId = useRoomStore((state) => state.setMatchId);
+
+  const goToSecretSelection = (matchId: string) => {
+    setMatchId(matchId);
+    router.replace({
+      pathname: "/private/game/select-secret",
+      params: { mode: "PRIVATE", matchId },
+    });
+  };
+
+  // Host: the guest joined (or the room died) while we were polling.
+  const roomStatus = roomStatusQuery.data?.status;
+  const roomMatchId = roomStatusQuery.data?.matchId;
+  useEffect(() => {
+    if (roomStatus === "IN_GAME" && roomMatchId) {
+      setMatchId(roomMatchId);
+      router.replace({
+        pathname: "/private/game/select-secret",
+        params: { mode: "PRIVATE", matchId: roomMatchId },
+      });
+    } else if (roomStatus === "CLOSED" || roomStatus === "EXPIRED") {
+      Alert.alert(t("common.error"), t("privateRoom.roomCancelled"));
+    }
+  }, [roomStatus, roomMatchId, setMatchId, t]);
+
+  // A closed/expired room falls back to the create view.
+  const roomIsDead = roomStatus === "CLOSED" || roomStatus === "EXPIRED";
+  const activeRoomCode = roomIsDead ? null : createdRoomCode;
+
+  const handleCancelRoom = async () => {
+    if (!createdRoomCode) return;
+    try {
+      await cancelRoomMutation.mutateAsync(createdRoomCode);
+      setCreatedRoomCode(null);
+    } catch {
+      Alert.alert(t("common.error"), t("errors.generic"));
+    }
+  };
 
   const handleCreateRoom = async () => {
     try {
       const result = await createRoomMutation.mutateAsync(undefined);
       setCreatedRoomCode(result.code);
-    } catch (error) {
+    } catch {
       Alert.alert(t("common.error"), t("errors.generic"));
     }
   };
@@ -36,10 +83,9 @@ export default function PrivateRoomScreen() {
     }
 
     try {
-      await joinRoomMutation.mutateAsync(joinCode.toUpperCase());
-      // Navegar a selección de número secreto
-      // router.push({ pathname: "/private/game/select-secret", params: { mode: "PRIVATE" } });
-    } catch (error) {
+      const result = await joinRoomMutation.mutateAsync(joinCode.toUpperCase());
+      goToSecretSelection(result.room.matchId);
+    } catch {
       Alert.alert(t("common.error"), t("errors.generic"));
     }
   };
@@ -94,7 +140,7 @@ export default function PrivateRoomScreen() {
       <View className="flex-1 px-6 mt-6">
         {activeTab === "create" ? (
           <View className="flex-1">
-            {!createdRoomCode ? (
+            {!activeRoomCode ? (
               <View className="flex-1 justify-center">
                 <Pressable
                   onPress={handleCreateRoom}
@@ -130,7 +176,7 @@ export default function PrivateRoomScreen() {
                   </Text>
                 </View>
 
-                <CodeDisplay code={createdRoomCode} onCopy={handleCopyCode} />
+                <CodeDisplay code={activeRoomCode} onCopy={handleCopyCode} />
 
                 <Text className="text-textMuted font-CairoRegular text-sm text-center mt-4 px-4">
                   {t("privateRoom.shareCodeHint")}
@@ -156,6 +202,16 @@ export default function PrivateRoomScreen() {
                       {t("game.waitingOpponent")}
                     </Text>
                   </LinearGradient>
+                </Pressable>
+
+                <Pressable
+                  onPress={handleCancelRoom}
+                  disabled={cancelRoomMutation.isPending}
+                  className="mt-4 py-3 px-6 active:opacity-70"
+                >
+                  <Text className="text-mainRed font-CairoSemiBold text-base">
+                    {t("privateRoom.cancelRoom")}
+                  </Text>
                 </Pressable>
               </View>
             )}
