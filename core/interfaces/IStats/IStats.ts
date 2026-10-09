@@ -1,20 +1,21 @@
+import type { IOfflineMatchPayload } from "../IGame/IOfflineStats";
+
 export interface IPlayerStats {
   totalGames: number;
   wins: number;
   losses: number;
   draws: number;
-  bestScore: number;
   currentStreak: number;
   bestStreak: number;
-  avgTimePerGame: number;
+  // Fewest attempts needed to win; null until the first win.
+  bestAttempts: number | null;
+  totalAttempts: number;
   totalPicos: number;
   totalPalas: number;
+  totalDurationSec: number;
+  avgTimePerGame: number;
 }
 
 export interface ISyncStatsRequest {
-  wins: number;
-  losses: number;
-  draws: number;
-  totalPicos: number;
-  totalPalas: number;
+  matches: IOfflineMatchPayload[];
 }

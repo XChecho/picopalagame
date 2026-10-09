@@ -1,5 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Alert, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,8 +24,11 @@ import {
   isGuessRepeated,
   findPreviousGuessFeedback,
 } from "@core/utils/gameLogic";
-import { syncOfflineStatsAction } from "@core/actions/stats/stats-action";
-import { addToOfflineStatsQueue } from "@core/utils/offlineStatsQueue";
+import {
+  addToOfflineStatsQueue,
+  buildOfflineEntry,
+  syncOfflineStatsQueue,
+} from "@core/utils/offlineStatsQueue";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import GameBoard from "@presentation/components/ui/GameBoard";
 import NumberPad from "@presentation/components/ui/NumberPad";
@@ -56,7 +67,9 @@ export default function VersusAIScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<Params>();
   const difficultyParam = (params.difficulty || "MEDIUM").toUpperCase();
-  const difficulty: TDifficulty = VALID_DIFFICULTIES.includes(difficultyParam as TDifficulty)
+  const difficulty: TDifficulty = VALID_DIFFICULTIES.includes(
+    difficultyParam as TDifficulty,
+  )
     ? (difficultyParam as TDifficulty)
     : "MEDIUM";
 
@@ -64,7 +77,6 @@ export default function VersusAIScreen() {
     opponentNumber,
     playerNumber,
     moves,
-    currentTurn,
     status,
     roundNumber,
     starter,
@@ -86,56 +98,38 @@ export default function VersusAIScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isAIThinking, setIsAIThinking] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [gameResult, setGameResult] = useState<"win" | "lose" | "draw" | null>(null);
+  const [gameResult, setGameResult] = useState<"win" | "lose" | "draw" | null>(
+    null,
+  );
   const [showDecidingAnimation, setShowDecidingAnimation] = useState(false);
   const [showStarterModal, setShowStarterModal] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
-  const [previousFeedback, setPreviousFeedback] = useState<{ picos: number; palas: number } | null>(null);
+  const [previousFeedback, setPreviousFeedback] = useState<{
+    picos: number;
+    palas: number;
+  } | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(TIMER_SECONDS);
   const [isGuessInputVisible, setIsGuessInputVisible] = useState(false);
 
   const isInitializedRef = useRef(false);
+  // Set when the match actually starts (see isInitialized effect); used for durationSec.
+  const matchStartedAtRef = useRef(0);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const aiStarterTriggeredRef = useRef(false);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const handleAutoSubmitRef = useRef<(() => void) | undefined>(undefined);
 
-  const showToast = useCallback((text: string, type: "info" | "error" | "success" = "info") => {
-    if (toastTimeoutRef.current) {
-      clearTimeout(toastTimeoutRef.current);
-    }
-    setToast({ text, type, visible: true });
-    toastTimeoutRef.current = setTimeout(() => {
-      setToast(null);
-    }, 2000);
-  }, []);
-
-  const handleSyncStats = useCallback(
-    async (
-      result: "win" | "lose" | "draw",
-      totalPicos: number,
-      totalPalas: number,
-    ) => {
-      try {
-        if (result === "win") {
-          await syncOfflineStatsAction({ wins: 1, losses: 0, draws: 0, totalPicos, totalPalas });
-        } else if (result === "lose") {
-          await syncOfflineStatsAction({ wins: 0, losses: 1, draws: 0, totalPicos, totalPalas });
-        } else {
-          await syncOfflineStatsAction({ wins: 0, losses: 0, draws: 1, totalPicos, totalPalas });
-        }
-      } catch {
-        await addToOfflineStatsQueue({
-          result,
-          difficulty,
-          totalPicos,
-          totalPalas,
-          turns: currentTurn - 1,
-          playedAt: new Date().toISOString(),
-        });
+  const showToast = useCallback(
+    (text: string, type: "info" | "error" | "success" = "info") => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
       }
+      setToast({ text, type, visible: true });
+      toastTimeoutRef.current = setTimeout(() => {
+        setToast(null);
+      }, 2000);
     },
-    [difficulty, currentTurn],
+    [],
   );
 
   const handleGameOver = useCallback(
@@ -143,24 +137,25 @@ export default function VersusAIScreen() {
       setGameResult(result);
       setStatus("FINISHED");
 
-      const currentMoves = useGameStore.getState().moves;
-      const totalPicos = currentMoves.reduce((sum, m) => sum + m.feedback.picos, 0);
-      const totalPalas = currentMoves.reduce((sum, m) => sum + m.feedback.palas, 0);
-
-      if (isAuthenticated) {
-        await handleSyncStats(result, totalPicos, totalPalas);
-      } else {
-        await addToOfflineStatsQueue({
+      const state = useGameStore.getState();
+      // Persist first so the match (and its move history) survives a failed sync.
+      await addToOfflineStatsQueue(
+        buildOfflineEntry({
           result,
           difficulty,
-          totalPicos,
-          totalPalas,
-          turns: currentTurn - 1,
-          playedAt: new Date().toISOString(),
-        });
+          maxTurns: state.maxAttempts,
+          moves: state.moves,
+          startedAt: matchStartedAtRef.current,
+          playerSecret: state.playerNumber,
+          aiSecret: state.opponentNumber,
+        }),
+      );
+
+      if (isAuthenticated) {
+        await syncOfflineStatsQueue();
       }
     },
-    [isAuthenticated, difficulty, currentTurn, handleSyncStats, setStatus],
+    [isAuthenticated, difficulty, setStatus],
   );
 
   const executeAITurn = useCallback(async () => {
@@ -219,7 +214,10 @@ export default function VersusAIScreen() {
       }
 
       const newAiAttemptsLeft = stateAfterDelay.aiAttemptsLeft - 1;
-      if (newAiAttemptsLeft <= 0 && stateAfterDelay.playerAttemptsLeft - 1 <= 0) {
+      if (
+        newAiAttemptsLeft <= 0 &&
+        stateAfterDelay.playerAttemptsLeft - 1 <= 0
+      ) {
         setIsAIThinking(false);
         handleGameOver("draw");
         return;
@@ -229,7 +227,14 @@ export default function VersusAIScreen() {
       setCurrentPlayerTurn("PLAYER");
       setIsAIThinking(false);
     }, remainingDelay);
-  }, [difficulty, addMove, decrementAIAttempts, incrementRoundNumber, setCurrentPlayerTurn, handleGameOver]);
+  }, [
+    difficulty,
+    addMove,
+    decrementAIAttempts,
+    incrementRoundNumber,
+    setCurrentPlayerTurn,
+    handleGameOver,
+  ]);
 
   useEffect(() => {
     if (isInitializedRef.current) return;
@@ -277,7 +282,11 @@ export default function VersusAIScreen() {
         await loadGameState();
         const state = useGameStore.getState();
 
-        if (state.mode === "VERSUS_AI" && state.status === "PLAYING" && state.playerNumber) {
+        if (
+          state.mode === "VERSUS_AI" &&
+          state.status === "PLAYING" &&
+          state.playerNumber
+        ) {
           repairMissingFields();
           setIsInitialized(true);
           return;
@@ -314,12 +323,22 @@ export default function VersusAIScreen() {
   }, [showStarterModal]);
 
   useEffect(() => {
+    if (isInitialized) matchStartedAtRef.current = Date.now();
+  }, [isInitialized]);
+
+  useEffect(() => {
     if (!isInitialized || status !== "PLAYING") return;
     saveGameState();
   }, [moves, status, isInitialized, saveGameState]);
 
   useEffect(() => {
-    if (isInitialized && starter === "AI" && moves.length === 0 && status === "PLAYING" && !aiStarterTriggeredRef.current) {
+    if (
+      isInitialized &&
+      starter === "AI" &&
+      moves.length === 0 &&
+      status === "PLAYING" &&
+      !aiStarterTriggeredRef.current
+    ) {
       aiStarterTriggeredRef.current = true;
       setTimeout(() => {
         executeAITurn();
@@ -339,7 +358,11 @@ export default function VersusAIScreen() {
   }, []);
 
   useEffect(() => {
-    if (difficulty !== "HARD" || status !== "PLAYING" || currentPlayerTurn !== "PLAYER") {
+    if (
+      difficulty !== "HARD" ||
+      status !== "PLAYING" ||
+      currentPlayerTurn !== "PLAYER"
+    ) {
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = null;
@@ -375,7 +398,11 @@ export default function VersusAIScreen() {
   const processPlayerGuess = useCallback(
     async (guess: string): Promise<boolean> => {
       const currentState = useGameStore.getState();
-      if (currentState.status !== "PLAYING" || currentState.currentPlayerTurn !== "PLAYER") return false;
+      if (
+        currentState.status !== "PLAYING" ||
+        currentState.currentPlayerTurn !== "PLAYER"
+      )
+        return false;
 
       setError(null);
       setPreviousFeedback(null);
@@ -383,8 +410,16 @@ export default function VersusAIScreen() {
       const validation = validateGuess(guess);
       if (!validation.valid) return false;
 
-      if (isGuessRepeated(guess, currentState.moves.filter((m) => m.isPlayerMove))) {
-        const prevFeedback = findPreviousGuessFeedback(guess, currentState.moves);
+      if (
+        isGuessRepeated(
+          guess,
+          currentState.moves.filter((m) => m.isPlayerMove),
+        )
+      ) {
+        const prevFeedback = findPreviousGuessFeedback(
+          guess,
+          currentState.moves,
+        );
         if (prevFeedback) {
           setPreviousFeedback(prevFeedback);
         }
@@ -426,7 +461,14 @@ export default function VersusAIScreen() {
 
       return true;
     },
-    [t, addMove, decrementPlayerAttempts, setCurrentPlayerTurn, handleGameOver, executeAITurn],
+    [
+      t,
+      addMove,
+      decrementPlayerAttempts,
+      setCurrentPlayerTurn,
+      handleGameOver,
+      executeAITurn,
+    ],
   );
 
   const handleSubmit = useCallback(async () => {
@@ -451,7 +493,12 @@ export default function VersusAIScreen() {
 
     const currentState = useGameStore.getState();
 
-    if (isGuessRepeated(guess, currentState.moves.filter((m) => m.isPlayerMove))) {
+    if (
+      isGuessRepeated(
+        guess,
+        currentState.moves.filter((m) => m.isPlayerMove),
+      )
+    ) {
       const prevFeedback = findPreviousGuessFeedback(guess, currentState.moves);
       if (prevFeedback) {
         setPreviousFeedback(prevFeedback);
@@ -461,7 +508,14 @@ export default function VersusAIScreen() {
     }
 
     await processPlayerGuess(guess);
-  }, [status, selectedDigits, currentPlayerTurn, t, showToast, processPlayerGuess]);
+  }, [
+    status,
+    selectedDigits,
+    currentPlayerTurn,
+    t,
+    showToast,
+    processPlayerGuess,
+  ]);
 
   const handleAutoSubmit = useCallback(async () => {
     if (timerIntervalRef.current) {
@@ -519,21 +573,17 @@ export default function VersusAIScreen() {
 
   const handleLeaveGame = useCallback(() => {
     if (status === "PLAYING") {
-      Alert.alert(
-        t("game.leaveGame"),
-        t("game.leaveGameConfirm"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("game.leaveGame"),
-            style: "destructive",
-            onPress: async () => {
-              await saveGameState();
-              router.back();
-            },
+      Alert.alert(t("game.leaveGame"), t("game.leaveGameConfirm"), [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("game.leaveGame"),
+          style: "destructive",
+          onPress: async () => {
+            await saveGameState();
+            router.back();
           },
-        ],
-      );
+        },
+      ]);
     } else {
       router.back();
     }
@@ -666,9 +716,15 @@ export default function VersusAIScreen() {
 
       {toast && (
         <View className="absolute top-24 left-4 right-4 z-20">
-          <View className={`rounded-xl px-4 py-3 ${
-            toast.type === "error" ? "bg-error" : toast.type === "success" ? "bg-success" : "bg-mainPurple"
-          }`}>
+          <View
+            className={`rounded-xl px-4 py-3 ${
+              toast.type === "error"
+                ? "bg-error"
+                : toast.type === "success"
+                  ? "bg-success"
+                  : "bg-mainPurple"
+            }`}
+          >
             <Text className="text-white font-CairoSemiBold text-center text-sm">
               {toast.text}
             </Text>
@@ -676,13 +732,17 @@ export default function VersusAIScreen() {
               <View className="flex-row justify-center gap-4 mt-2">
                 <View className="flex-row items-center gap-1">
                   <View className="w-4 h-4 rounded-full bg-success justify-center items-center">
-                    <Text className="text-[8px] font-CairoBold text-background">{previousFeedback.picos}</Text>
+                    <Text className="text-[8px] font-CairoBold text-background">
+                      {previousFeedback.picos}
+                    </Text>
                   </View>
                   <Text className="text-white/80 text-xs">F</Text>
                 </View>
                 <View className="flex-row items-center gap-1">
                   <View className="w-4 h-4 rounded-full bg-gold justify-center items-center">
-                    <Text className="text-[8px] font-CairoBold text-background">{previousFeedback.palas}</Text>
+                    <Text className="text-[8px] font-CairoBold text-background">
+                      {previousFeedback.palas}
+                    </Text>
                   </View>
                   <Text className="text-white/80 text-xs">P</Text>
                 </View>
