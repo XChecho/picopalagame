@@ -1,3 +1,5 @@
+/// <reference types="expo/types" />
+
 // declarations.d.ts
 declare module '*.webp';
 declare module '*.jpg';
