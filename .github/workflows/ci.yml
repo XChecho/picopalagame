@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # postinstall ejecuta patch-package (patches/).
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # .expo/types no existe en CI (está en .gitignore), así que las rutas tipadas de expo-router no se validan aquí.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm run test:ci
